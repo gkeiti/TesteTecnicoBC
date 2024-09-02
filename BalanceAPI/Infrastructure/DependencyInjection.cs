@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces;
 using Infrastructure.Database.Contexts;
 using Infrastructure.Database.Repositories;
+using Infrastructure.MessageBroker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace Infrastructure
             services
                 .AddDbContexts(configuration)
 
-                //.AddSingleton<IRabbitMqService, RabbitMqService>()
+                .AddSingleton<IRabbitMqService, RabbitMqService>()
                 .AddScoped<IOperationRepository, OperationRepository>()
                 .AddScoped<IBalanceRepository, BalanceRepository>()
             ;

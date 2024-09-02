@@ -53,9 +53,19 @@ namespace Infrastructure.MessageBroker
                 {
                     var _operationRepository = scope.ServiceProvider.GetRequiredService<IOperationRepository>();
 
-                    var saved = await _operationRepository.AddOperationAsync(operation);
+                    var prevOperation = await _operationRepository.GetByGuid(operation!.Id);
 
-                    if (saved)
+                    if (prevOperation is null)
+                    {
+                        var saved = await _operationRepository.AddOperationAsync(operation);
+
+                        if (saved)
+                        {
+                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                            PublishSavedOperation(operation);
+                        }
+                    }
+                    else
                     {
                         channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                     }
@@ -67,6 +77,37 @@ namespace Infrastructure.MessageBroker
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
+        }
+
+        public void PublishSavedOperation(OperationEntity operation)
+        {
+            var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            string queueName = "operations-saved";
+            string exchangeName = "oprations-saved-exchange";
+
+            channel.QueueDeclare(queue: queueName,
+                                 durable: true,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+            channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout);
+
+            channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: string.Empty);
+
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
+
+            var message = JsonConvert.SerializeObject(operation);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            channel.BasicPublish(exchange: exchangeName,
+                                 routingKey: string.Empty,
+                                 basicProperties: properties,
+                                 body: body);
         }
     }
 }

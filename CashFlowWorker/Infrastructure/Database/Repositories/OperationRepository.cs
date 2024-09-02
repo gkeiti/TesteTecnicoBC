@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.Database.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database.Repositories
 {
@@ -10,6 +11,11 @@ namespace Infrastructure.Database.Repositories
         public OperationRepository(CashFlowDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<OperationEntity?> GetByGuid(Guid guid)
+        {
+            return await _context.Operations.FirstOrDefaultAsync(x => x.Id == guid);
         }
 
         public async Task<bool> AddOperationAsync(OperationEntity operation)

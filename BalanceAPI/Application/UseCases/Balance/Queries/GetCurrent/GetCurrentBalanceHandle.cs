@@ -1,5 +1,5 @@
-﻿using Application.Services;
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
+using Domain.Services;
 using MediatR;
 
 namespace Application.UseCases.Balance.Queries.GetCurrent

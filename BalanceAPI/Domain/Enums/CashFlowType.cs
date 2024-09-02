@@ -2,7 +2,7 @@
 {
     public enum CashFlowType
     {
-        Debit,
-        Credit
+        Credit = 1,
+        Debit = 2
     }
 }

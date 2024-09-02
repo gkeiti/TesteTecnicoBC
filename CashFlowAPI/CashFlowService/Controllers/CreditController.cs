@@ -17,20 +17,6 @@ namespace CashFlowServiceAPI.Controllers
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator)); ;
         }
 
-        //// GET: api/<CreditController>
-        //[HttpGet]
-        //public IEnumerable<string> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
-
-        //// GET api/<CreditController>/5
-        //[HttpGet("{id}")]
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
-
         // POST api/<CreditController>
         [HttpPost]
         public async Task<IActionResult> AddCredit([FromBody] AddCreditCommand command)
@@ -39,17 +25,5 @@ namespace CashFlowServiceAPI.Controllers
 
             return Ok();
         }
-
-        //// PUT api/<CreditController>/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
-
-        //// DELETE api/<CreditController>/5
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
     }
 }

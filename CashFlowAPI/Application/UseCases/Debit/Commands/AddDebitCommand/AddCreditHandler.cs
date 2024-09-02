@@ -19,7 +19,7 @@ namespace Application.UseCases.Debit.Commands.AddDebitCommand
 
             _rabbitMqService.PublishOperation<OperationEntity>(teste);
 
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

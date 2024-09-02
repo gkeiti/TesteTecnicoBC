@@ -31,9 +31,6 @@ namespace Infrastructure.MessageBroker
                                  body: body);
 
             Console.WriteLine($" [x] Sent {message}");
-
-            //Console.WriteLine(" Press [enter] to exit.");
-            //Console.ReadLine();
         }
     }
 }
