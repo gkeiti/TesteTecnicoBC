@@ -18,13 +18,5 @@ namespace Infrastructure.Database.Repositories
         {
             return await _context.Operations.Where(x => x.CreatedDate.Date == DateTime.Now.Date).ToListAsync();
         }
-
-        //public async Task<bool> AddOperationAsync(OperationEntity operation)
-        //{
-        //    await _context.Operations.AddAsync(operation);
-        //    var result = await _context.SaveChangesAsync();
-
-        //    return result == 1;
-        //}
     }
 }

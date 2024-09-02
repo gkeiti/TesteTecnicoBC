@@ -2,8 +2,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace BalanceAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -17,7 +15,6 @@ namespace BalanceAPI.Controllers
             _mediatr = mediatr;
         }
 
-        // GET: api/<Balance>
         [HttpGet]
         public async Task<IActionResult> GetCurrent()
         {
@@ -27,7 +24,7 @@ namespace BalanceAPI.Controllers
         }
 
         [HttpGet("GetByDate")]
-        public async Task<IActionResult> GetByDate([FromQuery] DateTime date)
+        public async Task<IActionResult> GetByDate([FromQuery] DateOnly date)
         {
             await _mediatr.Send(new GetCurrentBalanceQuery());
 

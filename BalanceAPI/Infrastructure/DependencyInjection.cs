@@ -17,20 +17,29 @@ namespace Infrastructure
                 .AddDbContexts(configuration)
 
                 .AddSingleton<IRabbitMqService, RabbitMqService>()
-                .AddSingleton<IRedisService,  RedisService>()
+                .AddSingleton<IRedisService, RedisService>()
                 .AddScoped<IOperationRepository, OperationRepository>()
                 .AddScoped<IBalanceRepository, BalanceRepository>()
+                .AddScoped<IRedisService, RedisService>()
             ;
+
 
             return services;
         }
 
         public static IServiceCollection AddDbContexts(this IServiceCollection services, IConfiguration configuration)
         {
-            return services.AddDbContext<BalanceDbContext>(options =>
-            {
-                options.UseSqlServer(configuration.GetConnectionString("BancoCarrefour"));
-            });
+            return services
+                .AddStackExchangeRedisCache(options =>
+                {
+                    options.Configuration = configuration.GetConnectionString("Redis");
+                    options.InstanceName = "Redis";
+                })
+                .AddDbContext<BalanceDbContext>(options =>
+                {
+                    options.UseSqlServer(configuration.GetConnectionString("BancoCarrefour"));
+                })
+            ;
         }
     }
 }

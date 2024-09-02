@@ -45,6 +45,13 @@ namespace Domain.Services
 
                 var saved = await _balanceRepository.AddOrUpdateBalanceCurrentDayAsync(consolidated);
 
+                if (saved > 0)
+                {
+                    var _redisService = scope.ServiceProvider.GetRequiredService<IRedisService>();
+
+                    _redisService.SaveCurrentBalanceRedis(consolidated);
+                }
+
                 return saved > 0;
             }
         }

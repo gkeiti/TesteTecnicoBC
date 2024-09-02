@@ -10,12 +10,10 @@ namespace Infrastructure.MessageBroker
 {
     public class RabbitMqService : IRabbitMqService
     {
-        private readonly BalanceServices _balanceServices;
         private readonly IServiceScopeFactory _servicesScopeFactory;
 
-        public RabbitMqService(BalanceServices balanceServices, IServiceScopeFactory servicesScopeFactory)
+        public RabbitMqService(IServiceScopeFactory servicesScopeFactory)
         {
-            _balanceServices = balanceServices;
             _servicesScopeFactory = servicesScopeFactory;
         }
 
@@ -48,8 +46,6 @@ namespace Infrastructure.MessageBroker
                 byte[] body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
                 Console.WriteLine($" [x] {message}");
-
-                var operation = JsonConvert.DeserializeObject<OperationEntity>(message);
 
                 using (var scope = _servicesScopeFactory.CreateScope())
                 {
