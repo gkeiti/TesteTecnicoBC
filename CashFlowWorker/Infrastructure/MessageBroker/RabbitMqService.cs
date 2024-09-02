@@ -24,7 +24,7 @@ namespace Infrastructure.MessageBroker
             using var channel = connection.CreateModel();
 
             string queueName = "operations-sent";
-            string exchange = "operations";
+            string exchange = "operations-sent-exchange";
 
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -61,8 +61,9 @@ namespace Infrastructure.MessageBroker
 
                         if (saved)
                         {
-                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                            Console.WriteLine("Teste aqui");
                             PublishSavedOperation(operation);
+                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                         }
                     }
                     else
@@ -86,7 +87,7 @@ namespace Infrastructure.MessageBroker
             using var channel = connection.CreateModel();
 
             string queueName = "operations-saved";
-            string exchangeName = "oprations-saved-exchange";
+            string exchangeName = "operations-saved-exchange";
 
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -108,6 +109,8 @@ namespace Infrastructure.MessageBroker
                                  routingKey: string.Empty,
                                  basicProperties: properties,
                                  body: body);
+
+            Console.WriteLine($" [x] Sent {message}");
         }
     }
 }

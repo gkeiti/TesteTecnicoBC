@@ -17,6 +17,9 @@ namespace Infrastructure.Database.Contexts
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+            modelBuilder.Entity<BalanceEntity>()
+                .HasKey(x => x.Date);
+
             base.OnModelCreating(modelBuilder);
         }
     }

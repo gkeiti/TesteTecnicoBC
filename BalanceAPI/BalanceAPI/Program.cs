@@ -11,10 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHostedService<BalanceWorker>();
-
 builder.Services.AddApplication()
-                .AddInfrastructure(builder.Configuration);
+                .AddInfrastructure(builder.Configuration)
+                .AddHostedService<BalanceWorker>();
 
 
 var app = builder.Build();

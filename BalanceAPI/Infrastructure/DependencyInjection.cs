@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces;
+using Infrastructure.CacheDatabase.Service;
 using Infrastructure.Database.Contexts;
 using Infrastructure.Database.Repositories;
 using Infrastructure.MessageBroker;
@@ -16,6 +17,7 @@ namespace Infrastructure
                 .AddDbContexts(configuration)
 
                 .AddSingleton<IRabbitMqService, RabbitMqService>()
+                .AddSingleton<IRedisService,  RedisService>()
                 .AddScoped<IOperationRepository, OperationRepository>()
                 .AddScoped<IBalanceRepository, BalanceRepository>()
             ;

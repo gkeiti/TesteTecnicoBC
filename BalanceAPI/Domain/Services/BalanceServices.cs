@@ -7,7 +7,7 @@ namespace Domain.Services
 {
     public interface IBalanceServices
     {
-        void RecalculateCurrentDay();
+        Task<bool> RecalculateCurrentDay();
     }
 
     public class BalanceServices : IBalanceServices
@@ -19,7 +19,7 @@ namespace Domain.Services
             _servicesScopeFactory = servicesScopeFactory;
         }
 
-        public async void RecalculateCurrentDay()
+        public async Task<bool> RecalculateCurrentDay()
         {
             using (var scope = _servicesScopeFactory.CreateScope())
             {
@@ -38,10 +38,14 @@ namespace Domain.Services
                 var consolidated = new BalanceEntity
                 {
                     ConsolidatedBalance = balance,
-                    Date = DateOnly.FromDateTime(DateTime.Now)
+                    Date = DateOnly.FromDateTime(DateTime.Now),
+                    SumDebits = debitsSum,
+                    SumCredits = creditsSum
                 };
 
-                await _balanceRepository.AddConsolidatedBalanceAsync(consolidated);
+                var saved = await _balanceRepository.AddOrUpdateBalanceCurrentDayAsync(consolidated);
+
+                return saved > 0;
             }
         }
     }

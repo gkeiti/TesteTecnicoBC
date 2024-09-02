@@ -26,7 +26,7 @@ namespace Infrastructure.MessageBroker
             using var channel = connection.CreateModel();
 
             string queueName = "operations-saved";
-            string exchange = "operations";
+            string exchange = "operations-saved-exchange";
 
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -54,20 +54,11 @@ namespace Infrastructure.MessageBroker
                 using (var scope = _servicesScopeFactory.CreateScope())
                 {
                     var _balanceService = scope.ServiceProvider.GetRequiredService<BalanceServices>();
-                    _balanceService.RecalculateCurrentDay();
+                    var saved = await _balanceService.RecalculateCurrentDay();
+
+                    if (saved)
+                        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 }
-
-                //using (var scope = _servicesScopeFactory.CreateScope())
-                //{
-                //    var _operationRepository = scope.ServiceProvider.GetRequiredService<IOperationRepository>();
-
-                //    var saved = await _operationRepository.AddOperationAsync(operation);
-
-                //    if (saved)
-                //    {
-                //        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                //    }
-                //}
             };
             channel.BasicConsume(queue: queueName,
                                  autoAck: false,
@@ -75,7 +66,6 @@ namespace Infrastructure.MessageBroker
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
-
         }
     }
 }

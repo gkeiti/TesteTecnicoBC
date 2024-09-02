@@ -12,20 +12,24 @@ namespace Infrastructure.MessageBroker
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
-            channel.QueueDeclare(queue: "operations-sent",
+
+            string queueName = "operations-sent";
+            string exchangeName = "operations-sent-exchange";
+
+            channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
 
-            channel.ExchangeDeclare(exchange: "operations", type: ExchangeType.Fanout); 
+            channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout); 
             var properties = channel.CreateBasicProperties();
             properties.Persistent = true;
 
             var message = JsonConvert.SerializeObject(payload);
             var body = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: "operations",
+            channel.BasicPublish(exchange: exchangeName,
                                  routingKey: string.Empty,
                                  basicProperties: properties,
                                  body: body);

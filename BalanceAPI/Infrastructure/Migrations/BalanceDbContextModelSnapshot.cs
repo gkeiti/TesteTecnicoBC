@@ -24,18 +24,14 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.BalanceEntity", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
 
                     b.Property<decimal>("ConsolidatedBalance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -49,7 +45,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.HasKey("Date");
 
                     b.ToTable("Balances");
                 });

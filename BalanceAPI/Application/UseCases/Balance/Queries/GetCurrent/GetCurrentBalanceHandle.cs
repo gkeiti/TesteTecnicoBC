@@ -1,4 +1,5 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Services;
 using MediatR;
 
@@ -18,20 +19,26 @@ namespace Application.UseCases.Balance.Queries.GetCurrent
         async Task<GetCurrentBalanceResponse> IRequestHandler<GetCurrentBalanceQuery, GetCurrentBalanceResponse>.Handle(GetCurrentBalanceQuery request, CancellationToken cancellationToken)
         {
             // TODO: Resgatar do Redis, se nao tiver, resgatar do banco
-            var redisResult = await _balanceRepository.GetBalance();
-
+            string redisResult = null;
+            BalanceEntity sqlResult = null;
             if (redisResult is not null)
             {
-                return new GetCurrentBalanceResponse(redisResult!);
+                return new GetCurrentBalanceResponse(null);
             }
             else
             {
-                // TODO: Calcular saldo consolidado novamente
-                _balanceServices.RecalculateCurrentDay();
-                // TODO: Inserir no Redis
+                sqlResult = await _balanceRepository.GetCurrentBalanceAsync();
             }
 
-            return null;
+            if (sqlResult is null) 
+            {
+                await _balanceServices.RecalculateCurrentDay();
+            }
+
+            var result = new GetCurrentBalanceResponse(sqlResult);
+
+
+            return result;
         }
     }
 }

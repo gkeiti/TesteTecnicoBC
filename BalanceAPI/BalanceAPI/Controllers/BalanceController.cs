@@ -19,9 +19,11 @@ namespace BalanceAPI.Controllers
 
         // GET: api/<Balance>
         [HttpGet]
-        public IEnumerable<string> GetCurrent()
+        public async Task<IActionResult> GetCurrent()
         {
-            return new string[] { "value1", "value2" };
+            var result = await _mediatr.Send(new GetCurrentBalanceQuery());
+
+            return Ok(result);
         }
 
         [HttpGet("GetByDate")]
