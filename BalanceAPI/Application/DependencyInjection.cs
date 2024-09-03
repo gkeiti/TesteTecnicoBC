@@ -1,4 +1,6 @@
-﻿using Domain.Services;
+﻿using Domain.Interfaces;
+using Domain.Services;
+using Infrastructure.Database.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -12,6 +14,7 @@ namespace Application
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssemblies(assembly));
 
             services
+                .AddScoped<IBalanceRepository, BalanceRepository>()
                 .AddTransient<BalanceServices>()
                 ;
 

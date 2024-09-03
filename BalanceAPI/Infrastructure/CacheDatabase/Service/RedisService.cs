@@ -34,6 +34,8 @@ namespace Infrastructure.CacheDatabase.Service
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
             };
 
+            Console.WriteLine($"Salvo no redis: {JsonConvert.SerializeObject(balance)}");
+
             _cache.SetString(DateOnly.FromDateTime(DateTime.Now).ToString(), JsonConvert.SerializeObject(balance), options);
         }
     }

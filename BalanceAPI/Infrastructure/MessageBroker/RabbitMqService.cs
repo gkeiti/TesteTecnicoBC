@@ -5,63 +5,107 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using System.Threading.Channels;
 
 namespace Infrastructure.MessageBroker
 {
     public class RabbitMqService : IRabbitMqService
     {
         private readonly IServiceScopeFactory _servicesScopeFactory;
+        private IConnection _connection;
+        private IModel _channel;
 
         public RabbitMqService(IServiceScopeFactory servicesScopeFactory)
         {
             _servicesScopeFactory = servicesScopeFactory;
+
+            // Localhost
+            //var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+
+            // Docker
+            var factory = new ConnectionFactory
+            {
+                HostName = "rabbitmq",
+                Port = 5672,
+                UserName = "guest",
+                Password = "guest",
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true
+            };
+
+            Console.WriteLine("Tentando conectar");
+
+            _connection = factory.CreateConnection();
+            Console.WriteLine("Connection criada");
+
+            _channel = _connection.CreateModel();
+            Console.WriteLine("Model criado");
         }
 
         public void Subscribe()
         {
-            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-
-            string queueName = "operations-saved";
-            string exchange = "operations-saved-exchange";
-
-            channel.QueueDeclare(queue: queueName,
-                                 durable: true,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
-
-            channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Fanout);
-
-            channel.QueueBind(queue: queueName,
-                              exchange: exchange,
-                              routingKey: string.Empty);
-
-            Console.WriteLine(" [*] Waiting for operations.");
-
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += async (model, ea) =>
+            try
             {
-                byte[] body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] {message}");
+                string queueName = "operations-saved";
+                string exchange = "operations-saved-exchange";
 
-                using (var scope = _servicesScopeFactory.CreateScope())
+                _channel.QueueDeclare(queue: queueName,
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+                Console.WriteLine("Queue declarada");
+
+                _channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Fanout);
+                Console.WriteLine("Exchange declarada");
+
+                _channel.QueueBind(queue: queueName,
+                                  exchange: exchange,
+                                  routingKey: string.Empty);
+                Console.WriteLine("Queue bindada");
+
+
+                Console.WriteLine(" [*] Waiting for operations.");
+
+                var consumer = new EventingBasicConsumer(_channel);
+                consumer.Received += async (model, ea) =>
                 {
-                    var _balanceService = scope.ServiceProvider.GetRequiredService<BalanceServices>();
-                    var saved = await _balanceService.RecalculateCurrentDay();
+                    byte[] body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    Console.WriteLine($" Mensagem lida: {message}");
 
-                    if (saved)
-                        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                }
-            };
-            channel.BasicConsume(queue: queueName,
-                                 autoAck: false,
-                                 consumer: consumer);
+                    using (var scope = _servicesScopeFactory.CreateScope())
+                    {
+                        var _balanceService = scope.ServiceProvider.GetRequiredService<BalanceServices>();
+                        var saved = await _balanceService.RecalculateCurrentDay();
+                        Console.WriteLine("Mensagem salva");
 
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
+
+                        if (saved)
+                        {
+                            Console.WriteLine("Mensagem acknoledged");
+                            _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        }
+                    }
+                };
+                _channel.BasicConsume(queue: queueName,
+                                     autoAck: false,
+                                     consumer: consumer);
+                Console.WriteLine("Basic Consume configurado");
+
+                Console.WriteLine(" Press [enter] to exit.");
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro Rabbit: {ex.ToString()}");
+            }
+        }
+
+        public void Dispose()
+        {
+            _channel.Dispose();
+            _connection.Dispose();
         }
     }
 }

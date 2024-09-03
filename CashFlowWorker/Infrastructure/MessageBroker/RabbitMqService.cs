@@ -12,41 +12,65 @@ namespace Infrastructure.MessageBroker
     {
         private readonly IServiceScopeFactory _servicesScopeFactory;
 
+        private IConnection _connection;
+        private IModel _channel;
+
         public RabbitMqService(IServiceScopeFactory servicesScopeFactory)
         {
             _servicesScopeFactory = servicesScopeFactory;
+
+            // Localhost
+            //var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+
+            // Docker
+            var factory = new ConnectionFactory
+            {
+                HostName = "rabbitmq",
+                Port = 5672,
+                UserName = "guest",
+                Password = "guest",
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true
+            };
+
+            Console.WriteLine("Tentando conectar");
+
+            _connection = factory.CreateConnection();
+            Console.WriteLine("Connection criada");
+
+            _channel = _connection.CreateModel();
+            Console.WriteLine("Model criado");
         }
 
         public void Subscribe()
         {
-            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
-
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
 
             string queueName = "operations-sent";
             string exchange = "operations-sent-exchange";
 
-            channel.QueueDeclare(queue: queueName,
+            _channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
+            Console.WriteLine("Queue declarada");
 
-            channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Fanout);
+            _channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Fanout);
+            Console.WriteLine("Exchange declarada");
 
-            channel.QueueBind(queue: queueName,
+            _channel.QueueBind(queue: queueName,
                               exchange: exchange,
                               routingKey: string.Empty);
+            Console.WriteLine("Queue bindada");
 
             Console.WriteLine(" [*] Waiting for operations.");
 
-            var consumer = new EventingBasicConsumer(channel);
+            var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
                 byte[] body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] {message}");
+                Console.WriteLine($" Mensagem lida: {message}");
 
                 var operation = JsonConvert.DeserializeObject<OperationEntity>(message);
 
@@ -59,23 +83,29 @@ namespace Infrastructure.MessageBroker
                     if (prevOperation is null)
                     {
                         var saved = await _operationRepository.AddOperationAsync(operation);
+                        Console.WriteLine("Mensagem salva");
 
                         if (saved)
                         {
-                            Console.WriteLine("Teste aqui");
+                            Console.WriteLine("Publicando operation-saved");
                             PublishSavedOperation(operation);
-                            channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                            Console.WriteLine("Publicado");
+
+                            Console.WriteLine("Mensagem acknoledged");
+                            _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                         }
                     }
                     else
                     {
-                        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        Console.WriteLine("Mensagem acknoledged");
+                        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                     }
                 }
             };
-            channel.BasicConsume(queue: queueName,
+            _channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
+            Console.WriteLine("Basic Consume configurado");
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
@@ -83,35 +113,41 @@ namespace Infrastructure.MessageBroker
 
         public void PublishSavedOperation(OperationEntity operation)
         {
-            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-
             string queueName = "operations-saved";
             string exchangeName = "operations-saved-exchange";
 
-            channel.QueueDeclare(queue: queueName,
+            _channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
+            Console.WriteLine("Queue declarada");
 
-            channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout);
+            _channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout);
+            Console.WriteLine("Exchange declarada");
 
-            channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: string.Empty);
+            _channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: string.Empty);
+            Console.WriteLine("Queue bindada");
 
-            var properties = channel.CreateBasicProperties();
+            var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
             var message = JsonConvert.SerializeObject(operation);
             var body = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: exchangeName,
+            _channel.BasicPublish(exchange: exchangeName,
                                  routingKey: string.Empty,
                                  basicProperties: properties,
                                  body: body);
+            Console.WriteLine($"Operations-saved publicada: {message} ");
 
             Console.WriteLine($" [x] Sent {message}");
+        }
+
+        public void Dispose()
+        {
+            _channel.Dispose();
+            _connection.Dispose();
         }
     }
 }

@@ -23,48 +23,49 @@ services:
     networks:
       - network-carrefour
 
-  # redis:
-  #   image: redis/redis-stack:latest
-  #   container_name: redis-carrefour
-  #   ports:
-  #     - "6379:6379"
-  #     - "8085:8085"
-  #   networks:
-  #     - bridge
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis-carrefour
+    ports:
+      - "6379:6379"
+      - "8085:8085"
+    networks:
+      - network-carrefour
 
-  # cashflowapi:
-  #   build:
-  #     context: .
-  #     dockerfile: ./CashFlowAPI/CashFlowAPI/Dockerfile
-  #   container_name: cashflowapi
-  #   depends_on:
-  #     - sqlserver
-  #     - rabbitmq
-  #   #   - redis
-  #   environment:
-  #     ConnectionStrings__SqlServer: "Server=sqlserver;Database=BancoCarrefour;User Id=sa;Password=1q2w3e4r@#$;"
-  #     RabbitMQ__Host: rabbitmq
-  #     # Redis__Host: redis-carrefour
-  #   networks:
-  #     - network-carrefour
-  #   ports:
-  #     - "5286:5286"
+  cashflowapi:
+    build:
+      context: .
+      dockerfile: ./CashFlowAPI/CashFlowAPI/Dockerfile
+    container_name: cashflowapi
+    depends_on:
+      - sqlserver
+      - rabbitmq
+      - redis
+    environment:
+      ConnectionStrings__SqlServer: "Server=sqlserver;Database=BancoCarrefour;User Id=sa;Password=1q2w3e4r@#$;"
+      RabbitMQ__Host: rabbitmq
+      Redis__Host: redis
+      ASPNETCORE_HTTP_PORTS: 5286
+    networks:
+      - network-carrefour
+    ports:
+      - "5286:5286"
 
-  # cashflowworker:
-  #   build:
-  #     context: .
-  #     dockerfile: ./CashFlowWorker/CashFlowWorker/Dockerfile
-  #   container_name: cashflowworker
-  #   depends_on:
-  #   #   - sqlserver
-  #     - rabbitmq
-  #   #   - redis
-  #   environment:
-  #   #   ConnectionStrings__SqlServer: "Server=sqlserver-carrefour;Database=BancoCarrefour;User Id=sa;Password=1q2w3e4r@#$;"
-  #     RabbitMQ__Host: rabbitmq
-  #   #   Redis__Host: redis-carrefour
-  #   networks:
-  #     - network-carrefour
+  cashflowworker:
+    build:
+      context: .
+      dockerfile: ./CashFlowWorker/CashFlowWorker/Dockerfile
+    container_name: cashflowworker
+    depends_on:
+      - sqlserver
+      - rabbitmq
+      - redis
+    environment:
+      ConnectionStrings__SqlServer: "Server=sqlserver;Database=BancoCarrefour;User Id=sa;Password=1q2w3e4r@#$;"
+      RabbitMQ__Host: rabbitmq
+      Redis__Host: redis
+    networks:
+      - network-carrefour
 
   balanceapi:
     build:
@@ -74,21 +75,16 @@ services:
     depends_on:
       - sqlserver
       - rabbitmq
-      # - redis
+      - redis
     environment:
       ConnectionStrings__SqlServer: "Server=sqlserver;Database=BancoCarrefour;User Id=sa;Password=1q2w3e4r@#$;"
       RabbitMQ__Host: rabbitmq
-    #   Redis__Host: redis-carrefour
+      Redis__Host: redis
+      ASPNETCORE_HTTP_PORTS: 5041
     networks:
       - network-carrefour
     ports:
       - "5041:5041"
-      # - "7022"
-    # healthcheck:
-    #   test: ["CMD", "sqlserver", "ping", "-h", "localhost"]
-    #   interval: 30s
-    #   timeout: 30s
-    #   retries: 10
 
 networks:
   network-carrefour:
@@ -96,3 +92,4 @@ networks:
 
 volumes:
   sqlserver_data:
+  rabbitmq_data:

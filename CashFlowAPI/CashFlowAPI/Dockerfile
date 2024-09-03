@@ -2,7 +2,7 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
+# USER app
 WORKDIR /app
 EXPOSE 5286
 
@@ -26,4 +26,6 @@ RUN dotnet publish "./CashFlowAPI/CashFlowAPI.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "CashFlowAPI.dll"]
+
+CMD ["dotnet", "CashFlowAPI.dll"]
+# ENTRYPOINT ["dotnet", "CashFlowAPI.dll"]

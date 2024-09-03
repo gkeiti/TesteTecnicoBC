@@ -27,6 +27,6 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
-CMD ["wait-for-it.sh", "rabbitmq:5672", "-t", "60", "--", "dotnet", "CashFlowWorker.dll"]
+CMD ["wait-for-it.sh", "rabbitmq:5672", "-t", "30", "--", "dotnet", "CashFlowWorker.dll"]
 
 # ENTRYPOINT ["dotnet", "CashFlowWorker.dll"]

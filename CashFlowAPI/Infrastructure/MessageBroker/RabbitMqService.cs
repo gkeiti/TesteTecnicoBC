@@ -8,7 +8,9 @@ namespace Infrastructure.MessageBroker
     {
         public void PublishOperation<T>(T payload)
         {
-            var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+            //var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" }; // http local
+            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" }; // XXX
+            //var factory = new ConnectionFactory { HostName = "rabbitmq-carrefour", Port = 5672, UserName = "guest", Password = "guest" };
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
@@ -22,7 +24,7 @@ namespace Infrastructure.MessageBroker
                                  autoDelete: false,
                                  arguments: null);
 
-            channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout); 
+            channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Fanout);
             var properties = channel.CreateBasicProperties();
             properties.Persistent = true;
 
