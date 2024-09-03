@@ -4,30 +4,26 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 5286
 
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+ARG BUILD_CONFIGURATION=Debug
 WORKDIR /src
-COPY ["CashFlowService/CashFlowServiceAPI.csproj", "CashFlowService/"]
-COPY ["Application/Application.csproj", "Application/"]
-COPY ["Domain/Domain.csproj", "Domain/"]
-COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-RUN dotnet restore "./CashFlowService/CashFlowServiceAPI.csproj"
+COPY ["/CashFlowAPI/CashFlowAPI/CashFlowAPI.csproj", "CashFlowAPI/"]
+RUN dotnet restore "./CashFlowAPI/CashFlowAPI.csproj"
 COPY . .
-WORKDIR "/src/CashFlowService"
-RUN dotnet build "./CashFlowServiceAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/CashFlowAPI"
+RUN dotnet build "./CashFlowAPI/CashFlowAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CashFlowServiceAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Debug
+RUN dotnet publish "./CashFlowAPI/CashFlowAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "CashFlowServiceAPI.dll"]
+ENTRYPOINT ["dotnet", "CashFlowAPI.dll"]

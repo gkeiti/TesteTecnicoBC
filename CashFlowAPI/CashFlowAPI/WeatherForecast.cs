@@ -1,4 +1,4 @@
-namespace CashFlowServiceAPI
+namespace CashFlowAPI
 {
     public class WeatherForecast
     {

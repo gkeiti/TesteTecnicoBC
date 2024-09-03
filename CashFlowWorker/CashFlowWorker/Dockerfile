@@ -10,19 +10,23 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CashFlowWorker.csproj", "."]
+COPY ["/CashFlowWorker/CashFlowWorker/CashFlowWorker.csproj", "."]
 RUN dotnet restore "./CashFlowWorker.csproj"
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "./CashFlowWorker.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/CashFlowWorker"
+RUN dotnet build "./CashFlowWorker/CashFlowWorker.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CashFlowWorker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./CashFlowWorker/CashFlowWorker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "CashFlowWorker.dll"]
+
+COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
+CMD ["wait-for-it.sh", "rabbitmq:5672", "-t", "60", "--", "dotnet", "CashFlowWorker.dll"]
+
+# ENTRYPOINT ["dotnet", "CashFlowWorker.dll"]

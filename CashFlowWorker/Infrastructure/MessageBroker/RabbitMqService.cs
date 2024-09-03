@@ -19,7 +19,8 @@ namespace Infrastructure.MessageBroker
 
         public void Subscribe()
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
+
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
@@ -82,7 +83,7 @@ namespace Infrastructure.MessageBroker
 
         public void PublishSavedOperation(OperationEntity operation)
         {
-            var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 

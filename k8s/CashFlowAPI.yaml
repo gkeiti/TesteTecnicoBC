@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cashflowapi-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cashflowapi
+  template:
+    metadata:
+      labels:
+        app: cashflowapi
+    spec:
+      containers:
+        - name: cashflowapi
+          image: cashflowapi:latest
+          ports:
+            - containerPort: 5286
+          env:
+            - name: ConnectionStrings__BancoCarrefour
+              value: "Server=sqlserver;Database=YourDatabase;User Id=sa;Password=YourPassword;"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cashflowapi-service
+spec:
+  selector:
+    app: cashflowapi
+  ports:
+    - protocol: TCP
+      port: 5286
+      targetPort: 5286
+  type: LoadBalancer
