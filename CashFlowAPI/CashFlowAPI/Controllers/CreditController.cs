@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace CashFlowAPI.Controllers
 {
@@ -10,14 +9,13 @@ namespace CashFlowAPI.Controllers
     [ApiController]
     public class CreditController : ControllerBase
     {
-        private IMediator _mediator;
+        private readonly IMediator _mediator;
 
         public CreditController(IMediator mediator)
         {
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator)); ;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        // POST api/<CreditController>
         [HttpPost]
         public async Task<IActionResult> AddCredit([FromBody] AddCreditCommand command)
         {

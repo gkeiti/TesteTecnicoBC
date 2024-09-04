@@ -22,13 +22,5 @@ namespace BalanceAPI.Controllers
 
             return Ok(result);
         }
-
-        [HttpGet("GetByDate")]
-        public async Task<IActionResult> GetByDate([FromQuery] DateOnly date)
-        {
-            await _mediatr.Send(new GetCurrentBalanceQuery());
-
-            return Ok();
-        }
     }
 }
