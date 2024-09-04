@@ -6,12 +6,10 @@ namespace Infrastructure.Worker
 {
     public class BalanceWorker : BackgroundService
     {
-        private readonly ILogger<BalanceWorker> _logger;
         private readonly IRabbitMqService _rabbitMqService;
 
-        public BalanceWorker(ILogger<BalanceWorker> logger, IRabbitMqService rabbitMqService)
+        public BalanceWorker(IRabbitMqService rabbitMqService)
         {
-            _logger = logger;
             _rabbitMqService = rabbitMqService;
         }
 

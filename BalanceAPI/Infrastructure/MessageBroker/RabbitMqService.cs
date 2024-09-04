@@ -1,11 +1,8 @@
-﻿using Domain.Entities;
-using Domain.Services;
+﻿using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Threading.Channels;
 
 namespace Infrastructure.MessageBroker
 {

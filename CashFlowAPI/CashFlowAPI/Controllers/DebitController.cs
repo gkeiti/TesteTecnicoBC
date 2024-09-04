@@ -2,8 +2,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace CashFlowAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -17,7 +15,6 @@ namespace CashFlowAPI.Controllers
             _mediatr = mediatr;
         }
 
-        // POST api/<DebitController>
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] AddDebitCommand value)
         {

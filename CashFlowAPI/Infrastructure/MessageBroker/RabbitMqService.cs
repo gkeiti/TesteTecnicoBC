@@ -8,9 +8,12 @@ namespace Infrastructure.MessageBroker
     {
         public void PublishOperation<T>(T payload)
         {
-            //var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" }; // http local
-            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" }; // XXX
-            //var factory = new ConnectionFactory { HostName = "rabbitmq-carrefour", Port = 5672, UserName = "guest", Password = "guest" };
+            // Localhost
+            //var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+
+            // Docker
+            var factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672, UserName = "guest", Password = "guest" };
+
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
