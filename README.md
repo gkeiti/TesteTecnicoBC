@@ -109,7 +109,7 @@ RabbitMQ:
 - Kubernetes para orquestrar e fazer o dimensionamento dos serviços
 - Transformar em Minimal APIs
 - Retirar connectionstrings de hardcoded e receber via appsettings/env via docker
-- (C) RUD dos lançamentos. Hoje só adiciona
+- (CR) UD dos lançamentos. Hoje só cria e lê os registros
 - GETs por dia, hoje só pega do dia vigente
 - DateTime pega UTC, às vezes se perde quando usa horário local/docker
 
